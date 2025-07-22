@@ -1,8 +1,22 @@
+import sqlite3
 import os
 import time
 import requests
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
+
+# Connect to database (or create it)
+conn = sqlite3.connect("wallet_data.db")
+cursor = conn.cursor()
+
+# Create table if not exists
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS wallet_balance (
+        timestamp TEXT,
+        eth_balance REAL
+    )
+''')
+conn.commit()
 
 # Load .env
 load_dotenv()
@@ -44,6 +58,12 @@ while True:
         plt.pause(10)  # Update every 10 seconds
 
         print(f"[{timestamp}] ETH Balance: {balance:.4f}")
+
+        # Insert data into the database
+        cursor.execute('''
+        INSERT INTO wallet_balance (timestamp, eth_balance) VALUES (?, ?)
+        ''', (timestamp, balance))
+        conn.commit()
 
     except KeyboardInterrupt:
         print("Tracking stopped.")
